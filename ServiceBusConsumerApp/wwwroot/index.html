@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Receiver Application</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .status {
+            background: #dff6dd;
+            color: #107c10;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0078d4;
+        }
+
+        .email {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .message-text {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .received {
+            margin-top: 15px;
+            color: #888;
+            font-size: 12px;
+        }
+
+        .empty {
+            background: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            color: #777;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Receiver Application</h1>
+
+        <div class="status">
+            ✓ Connected - Listening to Azure Service Bus
+        </div>
+
+        <div id="messages"></div>
+
+    </div>
+
+    <script>
+
+async function loadMessages() {
+
+    try {
+
+        const response =
+            await fetch("/api/messages");
+
+        if (!response.ok) {
+            throw new Error(
+                "Unable to get messages");
+        }
+
+        const messages =
+            await response.json();
+
+        const container =
+            document.getElementById("messages");
+
+        container.innerHTML = "";
+
+        if (messages.length === 0) {
+
+            container.innerHTML = `
+                <div class="empty">
+                    No messages received yet.
+                </div>
+            `;
+
+            return;
+        }
+
+        messages.forEach(message => {
+
+            const div =
+                document.createElement("div");
+
+            div.className = "message";
+
+            div.innerHTML = `
+
+                <div class="name">
+                    ${escapeHtml(message.name)}
+                </div>
+
+                <div class="email">
+                    ${escapeHtml(message.email)}
+                </div>
+
+                <div class="message-text">
+                    ${escapeHtml(message.message)}
+                </div>
+
+                <div class="received">
+                    Received:
+                    ${new Date(
+                        message.receivedAt
+                    ).toLocaleString()}
+                </div>
+
+            `;
+
+            container.appendChild(div);
+
+        });
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+function escapeHtml(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value ?? "";
+
+    return div.innerHTML;
+}
+
+loadMessages();
+
+// Check for new messages every 2 seconds.
+setInterval(loadMessages, 2000);
+
+    </script>
+
+</body>
+
+</html>
